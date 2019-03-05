@@ -1,0 +1,70 @@
+---
+title: "hyperSpec for MIR preprocessing"
+output: html_notebook
+---
+
+# Using hyperSpec package to pre-process and explore MIR data from mosquitoes
+
+### Load packages to R and set up wprking directory
+
+```{r}
+library("hyperSpec", lib.loc="~/R/win-library/3.5")
+```
+```{r}
+setwd("C:/Users/2166611p/Desktop/PhD/Scripts/R scripts/Experiment_1 preprocessing")
+```
+
+### Import data into R
+
+Data for each measurement in saved in a data point (.dpt) file in a specific folder. The files names contain information about the species, the age, the general part of the mosquito (head, thorax, abdomen and legs) and the specific part where the measurement was taken.By following the filename agreedment, we read all the files that match a specific criteria, in this case we are choosing all the files that measure the first segment of the abdomen (AA) across all ages
+
+```{r}
+# set default labels
+label <- list(.wavelength = "Wavenumbers (cm-1)", spc = "Absorbance (a.u)") #needs to be resolved
+
+# create the list
+pattern = "C:/Users/2166611p/Desktop/PhD/Data/FTIR data/Mosquito Samples/RAW_FTIR_Experiment_1/*?D-AB-AA.dpt"
+
+filenames <- Sys.glob(pattern)
+# read the first file of the list
+y = matrix(scan(filenames [1]),ncol=2,byrow=TRUE)
+# create wavelength vector
+wavelength <- y[, 1]
+
+# preallocate the spc matrix
+## one row per file x as many columns as the first file has
+spc <- matrix (ncol = nrow (y), nrow = length (filenames))
+
+#the first file's data goes into the first row
+spc[1, ] <- y[, 2]
+
+for (f in seq (along = filenames)[-1]) {
+  y <- matrix (scan (filenames[f]), ncol = 2, byrow = TRUE)
+  ## check whether they have the same wavelength axis
+  if (! all.equal (y[, 1], wavelength))
+    stop (paste(filenames [f], "has different wavelength axis."))
+  spc [f, ] <- y[, 2]
+}
+```
+
+Once we import all the data, we create the spc hyperSpec object to use with the package
+
+```{r}
+spc <- new ("hyperSpec", wavelength = wavelength, spc = spc, label = label)
+```
+
+And then we plot one spectra to check
+
+```{r}
+
+plot(spc,wl.reverse = TRUE, col = "red")
+```
+
+### Adding data columns
+So far, we have the spectra of all the first segment of the mosquitoes samples.Now we need to add the age data column.
+
+```{r}
+
+```
+
+
